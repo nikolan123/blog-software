@@ -1,0 +1,123 @@
+from flask import Flask, render_template
+import json
+import sys
+import os
+import hashlib
+from datetime import datetime
+
+def sha256_hash(input_string):
+    sha256 = hashlib.sha256()
+    sha256.update(input_string.encode('utf-8'))
+    return sha256.hexdigest()
+
+def config_gen():
+    temp_done = False
+    print("-- Config Wizard --")
+    while not temp_done:
+        temp_title = input("- Blog Title: ")
+        temp_slogan = input("- Blog Slogan: ") # TODO: make this not exist if empty
+        temp_password = sha256_hash(input("- Admin Password: "))
+        temp_posts_dir = input("- Posts Directory (posts): ")
+        temp_json = {
+            "title": temp_title,
+            "slogan": temp_slogan,
+            "admin": temp_password,
+            "posts_dir": temp_posts_dir if not temp_posts_dir == "" else "posts"
+        }
+        temp_choice = input("- Save Config to config.json? (will overwrite) (y/n) ")
+        if temp_choice.lower() == "yes" or temp_choice.lower() == "y":
+            temp_done = True
+            with open("config.json", "w") as temp_file:
+                json.dump(temp_json, temp_file, indent=4)
+            print("-- Wizard Completed --")
+        else:
+            print("-- Wizard not Completed --")
+
+def refresh_posts():
+    for post in os.listdir(posts_dir):
+        post_path = os.path.join(posts_dir, post)
+        if not os.path.isfile(post_path) or not post.lower().endswith('.md'):
+            continue
+        with open(post_path, 'r', encoding='utf-8') as file:
+            # get post title
+            first_line = file.readline().strip()
+            if first_line.startswith('# '): # check if post has a valid title
+                title = first_line[2:].strip()
+                # check if post existed before, if so get original created date, else set to current
+                # might as well get the value of "auto" while the file is open ( refer to line 60 )
+                auto_value = True
+                old_path = os.path.join('system', post[:-3] + '.json')
+                if os.path.exists(old_path):
+                    with open(old_path, 'r') as old_file:
+                        old_json = json.load(old_file)
+                        auto_value = old_json.get('auto', True)
+                        timestamp_published = old_json.get('timestamp_published')
+                        if not timestamp_published:
+                            timestamp_published = datetime.now().timestamp()
+                else:
+                    timestamp_published = datetime.now().timestamp()
+                # generate json and save it :3
+                post_json = {
+                    "title": title,
+                    "timestamp_published": int(timestamp_published),
+                    "auto": True # this means that the json was auto generated and will be touched next time too. if you want
+                                 # to manually override something (such as title), edit the file manually, change the value
+                                 # and set this to false
+                }
+                if auto_value is True:
+                    # write the new json
+                    with open(os.path.join('system', post[:-3] + '.json'), 'w') as post_file:
+                        json.dump(post_json, post_file, indent=4)
+
+
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return render_template('homepage.html', title=blog_title, slogan=blog_slogan)
+
+if __name__ == '__main__':
+    global blog_title, blog_slogan, blog_password, posts_dir
+    # check dirs
+    required_paths = ['templates', 'templates/homepage.html']
+    for path in required_paths:
+        if not os.path.exists(path):
+            print(f"[INIT] {path} not found, exiting")
+            sys.exit()
+    # make thing paths
+    required_system_paths = ['system', 'posts']
+    for path in required_system_paths:
+        if not os.path.exists(path):
+            print(f"[INIT] Creating {path}")
+            os.makedirs(path)
+    # read config
+    if not os.path.exists("config.json"):
+        print("[INIT] Config not found")
+        config_gen()
+    print("[INIT] Reading config file")
+    with open('config.json', 'r') as config_file:
+        config_json = json.load(config_file)
+        # get title
+        if not config_json.get("title"):
+            print("[INIT] Blog title missing, exiting")
+            sys.exit()
+        else:
+            blog_title = config_json.get("title")
+        # get admin pw
+        if not config_json.get("admin"):
+            print("[INIT] Admin password missing, exiting")
+            sys.exit()
+        else:
+            blog_password = config_json.get("admin")
+        # get posts dir
+        if not config_json.get("posts_dir"):
+            print("[INIT] Posts directory missing, exiting")
+            sys.exit()
+        else:
+            posts_dir = config_json.get("posts_dir")
+        # get slogan
+        blog_slogan = config_json.get("slogan")
+    refresh_posts()
+    print("[INIT] Starting")
+    app.run(debug=True)
