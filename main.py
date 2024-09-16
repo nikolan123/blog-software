@@ -4,6 +4,7 @@ import sys
 import os
 import hashlib
 from datetime import datetime
+import urllib.parse
 
 def sha256_hash(input_string):
     sha256 = hashlib.sha256()
@@ -18,11 +19,13 @@ def config_gen():
         temp_slogan = input("- Blog Slogan: ") # TODO: make this not exist if empty
         temp_password = sha256_hash(input("- Admin Password: "))
         temp_posts_dir = input("- Posts Directory (posts): ")
+        temp_base_url = input("- Posts Directory (example: http://localhost:5000/): ")
         temp_json = {
             "title": temp_title,
             "slogan": temp_slogan,
             "admin": temp_password,
-            "posts_dir": temp_posts_dir if not temp_posts_dir == "" else "posts"
+            "posts_dir": temp_posts_dir if not temp_posts_dir == "" else "posts",
+            "base_url": temp_base_url
         }
         temp_choice = input("- Save Config to config.json? (will overwrite) (y/n) ")
         if temp_choice.lower() == "yes" or temp_choice.lower() == "y":
@@ -34,6 +37,9 @@ def config_gen():
             print("-- Wizard not Completed --")
 
 def refresh_posts():
+    global posts_dict
+    posts_dict = []
+    # first, redo the json files
     for post in os.listdir(posts_dir):
         post_path = os.path.join(posts_dir, post)
         if not os.path.isfile(post_path) or not post.lower().endswith('.md'):
@@ -57,19 +63,75 @@ def refresh_posts():
                 else:
                     timestamp_published = datetime.now().timestamp()
                 # generate json and save it :3
+                urlsafe = urllib.parse.quote(post[:-3].replace(' ', '-').replace('_', '-'))  # url safe version of the file name
+                md_path = post_path  # path to the markdown file
+                post_fulllink = base_url + "posts/" + urlsafe  # full url for the markdown file
                 post_json = {
                     "title": title,
                     "timestamp_published": int(timestamp_published),
-                    "auto": True # this means that the json was auto generated and will be touched next time too. if you want
+                    "auto": True, # this means that the json was auto generated and will be touched next time too. if you want
                                  # to manually override something (such as title), edit the file manually, change the value
                                  # and set this to false
+                    "urlsafe": urlsafe,
+                    "md_path": md_path,
+                    "post_fulllink": post_fulllink
                 }
                 if auto_value is True:
                     # write the new json
                     with open(os.path.join('system', post[:-3] + '.json'), 'w') as post_file:
                         json.dump(post_json, post_file, indent=4)
+    # second, update the dict
+    for json_file in os.listdir('system'):
+        json_path = os.path.join('system', json_file)
+        if not json_file.lower().endswith('.json'):
+            continue
+        with open(json_path, 'r', encoding='utf-8') as file:
+            posts_dict.append(json.load(file))
 
+def init_directories():
+    # check directories
+    required_paths = ['templates', 'templates/homepage.html']
+    for path in required_paths:
+        if not os.path.exists(path):
+            print(f"[INIT] {path} not found, exiting")
+            sys.exit()
+    
+    # make required directories
+    required_system_paths = ['system', 'posts']
+    for path in required_system_paths:
+        if not os.path.exists(path):
+            print(f"[INIT] Creating {path}")
+            os.makedirs(path)
 
+def read_config():
+    global blog_title, blog_slogan, blog_password, posts_dir, base_url
+    if not os.path.exists("config.json"):
+        print("[INIT] Config not found")
+        config_gen()
+    print("[INIT] Reading config file")
+    with open('config.json', 'r') as config_file:
+        config_json = json.load(config_file)
+        if not config_json.get("title"):
+            print("[INIT] Blog title missing, exiting")
+            sys.exit()
+        else:
+            blog_title = config_json.get("title")
+        if not config_json.get("admin"):
+            print("[INIT] Admin password missing, exiting")
+            sys.exit()
+        else:
+            blog_password = config_json.get("admin")
+        if not config_json.get("posts_dir"):
+            print("[INIT] Posts directory missing, exiting")
+            sys.exit()
+        else:
+            posts_dir = config_json.get("posts_dir")
+        if not config_json.get("base_url"):
+            print("[INIT] Base URL missing, exiting")
+            sys.exit()
+        else:
+            base_url = config_json.get("base_url")
+        blog_slogan = config_json.get("slogan")
 
 app = Flask(__name__)
 
@@ -78,46 +140,8 @@ def hello_world():
     return render_template('homepage.html', title=blog_title, slogan=blog_slogan)
 
 if __name__ == '__main__':
-    global blog_title, blog_slogan, blog_password, posts_dir
-    # check dirs
-    required_paths = ['templates', 'templates/homepage.html']
-    for path in required_paths:
-        if not os.path.exists(path):
-            print(f"[INIT] {path} not found, exiting")
-            sys.exit()
-    # make thing paths
-    required_system_paths = ['system', 'posts']
-    for path in required_system_paths:
-        if not os.path.exists(path):
-            print(f"[INIT] Creating {path}")
-            os.makedirs(path)
-    # read config
-    if not os.path.exists("config.json"):
-        print("[INIT] Config not found")
-        config_gen()
-    print("[INIT] Reading config file")
-    with open('config.json', 'r') as config_file:
-        config_json = json.load(config_file)
-        # get title
-        if not config_json.get("title"):
-            print("[INIT] Blog title missing, exiting")
-            sys.exit()
-        else:
-            blog_title = config_json.get("title")
-        # get admin pw
-        if not config_json.get("admin"):
-            print("[INIT] Admin password missing, exiting")
-            sys.exit()
-        else:
-            blog_password = config_json.get("admin")
-        # get posts dir
-        if not config_json.get("posts_dir"):
-            print("[INIT] Posts directory missing, exiting")
-            sys.exit()
-        else:
-            posts_dir = config_json.get("posts_dir")
-        # get slogan
-        blog_slogan = config_json.get("slogan")
+    init_directories()
+    read_config()
     refresh_posts()
     print("[INIT] Starting")
     app.run(debug=True)
