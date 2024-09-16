@@ -136,8 +136,8 @@ def read_config():
 app = Flask(__name__)
 
 @app.route('/')
-def hello_world():
-    return render_template('homepage.html', title=blog_title, slogan=blog_slogan)
+def homepage():
+    return render_template('homepage.html', title=blog_title, slogan=blog_slogan, posts=posts_dict)
 
 if __name__ == '__main__':
     init_directories()

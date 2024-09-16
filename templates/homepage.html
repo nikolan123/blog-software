@@ -8,9 +8,42 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
 </head>
 <body>
-    <h1>{{ title }}</h1>
-    {% if slogan %}
-    <h3>{{ slogan }}</h3>
-    {% endif %}
+    <header>
+        <h1>{{ title }}</h1>
+        {% if slogan %}
+        <h3>{{ slogan }}</h3>
+        {% endif %}
+    </header>
+    <main>
+        {% for post in posts %}
+        <a style="text-decoration: none; color: rgb(150, 150, 150);"href="{{ post.post_fulllink }}">
+            <h2>{{ post.title }}</h2>
+            <p class="timestamp" data-timestamp="{{ post.timestamp_published }}"></p>
+        </a>
+        </div>
+        {% endfor %}
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const timestamps = document.querySelectorAll('.timestamp');
+
+            timestamps.forEach(element => {
+                const timestamp = parseFloat(element.getAttribute('data-timestamp'));
+                const date = new Date(timestamp * 1000); // Convert seconds to milliseconds
+                const options = { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    // second: '2-digit', 
+                    // timeZoneName: 'short' 
+                };
+                const humanReadableDate = date.toLocaleString('en-US', options);
+                element.textContent = humanReadableDate;
+            });
+        });
+    </script>
 </body>
 </html>
