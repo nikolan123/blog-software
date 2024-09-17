@@ -5,6 +5,7 @@ import os
 import hashlib
 from datetime import datetime
 import urllib.parse
+import markdown
 
 def sha256_hash(input_string):
     sha256 = hashlib.sha256()
@@ -47,6 +48,7 @@ def refresh_posts():
         with open(post_path, 'r', encoding='utf-8') as file:
             # get post title
             first_line = file.readline().strip()
+            namep = post[:-3].replace(' ', '-').replace('_', '-')  # normal version of the file name
             if first_line.startswith('# '): # check if post has a valid title
                 title = first_line[2:].strip()
                 # check if post existed before, if so get original created date, else set to current
@@ -70,15 +72,16 @@ def refresh_posts():
                     "title": title,
                     "timestamp_published": int(timestamp_published),
                     "auto": True, # this means that the json was auto generated and will be touched next time too. if you want
-                                 # to manually override something (such as title), edit the file manually, change the value
-                                 # and set this to false
+                                  # to manually override something (such as title), edit the file manually, change the value
+                                  # and set this to false
                     "urlsafe": urlsafe,
+                    "name": namep,
                     "md_path": md_path,
                     "post_fulllink": post_fulllink
                 }
                 if auto_value is True:
                     # write the new json
-                    with open(os.path.join('system', post[:-3] + '.json'), 'w') as post_file:
+                    with open(os.path.join('system', namep + '.json'), 'w') as post_file:
                         json.dump(post_json, post_file, indent=4)
     # second, update the dict
     for json_file in os.listdir('system'):
@@ -97,7 +100,7 @@ def init_directories():
             sys.exit()
     
     # make required directories
-    required_system_paths = ['system', 'posts']
+    required_system_paths = ['system']
     for path in required_system_paths:
         if not os.path.exists(path):
             print(f"[INIT] Creating {path}")
@@ -126,6 +129,12 @@ def read_config():
             sys.exit()
         else:
             posts_dir = config_json.get("posts_dir")
+            if not os.path.exists(posts_dir):
+                if not posts_dir == 'posts':
+                    print("[INIT] Posts directory does not exist, exiting")
+                    sys.exit()
+                else:
+                    os.makedirs(posts_dir)
         if not config_json.get("base_url"):
             print("[INIT] Base URL missing, exiting")
             sys.exit()
@@ -138,6 +147,23 @@ app = Flask(__name__)
 @app.route('/')
 def homepage():
     return render_template('homepage.html', title=blog_title, slogan=blog_slogan, posts=posts_dict)
+
+@app.route('/posts/<postname>')
+def post_read(postname):
+    post_filedir = os.path.join('system', str(urllib.parse.unquote(postname)) + ".json")
+    if not os.path.exists(post_filedir): # if it doesn't exist
+        return "Post not found", 404
+    else: # if it does exist
+        with open(post_filedir, 'r', encoding='utf-8') as fileready: # read metadata
+            file_json = json.load(fileready)
+        if not os.path.exists(file_json['md_path']):
+            return "Post metadata found, but no post content", 404
+        with open(file_json['md_path'], 'r', encoding='utf-8') as fileready2: # read content
+            post_content = fileready2.read()
+        post_title = file_json.get("title", "No Title")
+        post_created = file_json.get("timestamp_published", "0")
+        post_content = markdown.markdown(post_content.strip(f"# {post_title}"))
+        return render_template('reader.html', title=post_title, content=post_content, timestamp_published=post_created)
 
 if __name__ == '__main__':
     init_directories()
