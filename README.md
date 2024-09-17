@@ -4,3 +4,4 @@
 - Image support
 - Online MD uploader
 - Test custom posts path
+- XML or RSS whatever I guess
