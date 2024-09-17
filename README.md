@@ -1,6 +1,6 @@
 # Blog Software
 ## TODO
-- Add admin page
-- Add blog reader
+- Delete deleted blogs
 - Image support
 - Online MD uploader
+- Test custom posts path
