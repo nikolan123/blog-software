@@ -18,13 +18,16 @@
         {% endif %}
     </header>
     <main>
-        {% for post in posts %}
-        <a style="text-decoration: none; color: rgb(150, 150, 150);"href="{{ post.post_fulllink }}">
-            <h2>{{ post.title }}</h2>
-            <p class="timestamp" data-timestamp="{{ post.timestamp_published }}"></p>
-        </a>
-        </div>
-        {% endfor %}
+        {% if posts %}
+            {% for post in posts %}
+                <a style="text-decoration: none; color: rgb(150, 150, 150);" href="{{ post.post_fulllink }}">
+                    <h2>{{ post.title }}</h2>
+                    <p class="timestamp" data-timestamp="{{ post.timestamp_published }}"></p>
+                </a>
+            {% endfor %}
+        {% else %}
+            <p style="color: gray;">There are no posts available.</p>
+        {% endif %}
     </main>
 
     <script>
