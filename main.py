@@ -68,6 +68,7 @@ def config_gen():
 def refresh_posts():
     global posts_dict
     posts_dict = []
+    newfiles_list = []
     # first, redo the json files
     for post in os.listdir(posts_dir):
         post_path = os.path.join(posts_dir, post)
@@ -107,6 +108,7 @@ def refresh_posts():
                     "md_path": md_path,
                     "post_fulllink": post_fulllink
                 }
+                newfiles_list.append(namep)
                 if auto_value is True:
                     # write the new json
                     with open(os.path.join('system', namep + '.json'), 'w') as post_file:
@@ -118,6 +120,12 @@ def refresh_posts():
             continue
         with open(json_path, 'r', encoding='utf-8') as file:
             posts_dict.append(json.load(file))
+
+    newfiles_with_ext = [f"{file}.json" for file in newfiles_list]
+
+    for filery in os.listdir('system'):
+        if filery not in newfiles_with_ext:
+            os.remove(os.path.join('system', filery))
 
 def init_directories():
     # check directories
