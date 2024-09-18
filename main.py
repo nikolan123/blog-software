@@ -163,7 +163,8 @@ def post_read(postname):
         post_title = file_json.get("title", "No Title")
         post_created = file_json.get("timestamp_published", "0")
         post_content = markdown.markdown(post_content.strip(f"# {post_title}"))
-        return render_template('reader.html', title=post_title, content=post_content, timestamp_published=post_created)
+        post_url = f"{base_url}posts/{postname}"
+        return render_template('reader.html', title=post_title, content=post_content, timestamp_published=post_created, posturl=post_url)
 
 if __name__ == '__main__':
     init_directories()
