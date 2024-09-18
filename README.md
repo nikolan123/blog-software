@@ -1,8 +1,9 @@
 # Blog Software
 ## TODO
-- Delete deleted blogs
+- [E] Delete deleted blogs
 - Image support
 - Online MD uploader
 - Test custom posts path
-- XML or RSS whatever I guess
+- [E] XML or RSS whatever I guess
 - Auto refresh
+- [E] Add embeds
