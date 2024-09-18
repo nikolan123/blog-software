@@ -6,6 +6,8 @@ import hashlib
 from datetime import datetime, timezone
 import urllib.parse
 import markdown
+import threading
+import time
 
 def sha256_hash(input_string):
     sha256 = hashlib.sha256()
@@ -199,6 +201,11 @@ def read_config():
         else:
             webmaster_name = config_json.get("webmaster_name")
 
+def refresh_periodically(): # function to refresh posts every 3 seconds
+    while True:
+        refresh_posts()
+        time.sleep(3)
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -232,5 +239,8 @@ if __name__ == '__main__':
     init_directories()
     read_config()
     refresh_posts()
+    thread = threading.Thread(target=refresh_periodically) # run function to refresh every 3s in bg
+    thread.daemon = True
+    thread.start()
     print("[INIT] Starting")
     app.run(debug=True)
