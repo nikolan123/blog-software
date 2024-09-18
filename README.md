@@ -6,4 +6,4 @@
 - Test custom posts path
 - [E] XML or RSS whatever I guess
 - Auto refresh
-- [E] Add embeds
+- [E] Make slogan neccessary
