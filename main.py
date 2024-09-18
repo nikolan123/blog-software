@@ -44,7 +44,7 @@ def config_gen():
         temp_slogan = input("- Blog Slogan/Description: ")
         temp_password = sha256_hash(input("- Admin Password: "))
         temp_posts_dir = input("- Posts Directory (posts): ")
-        temp_base_url = input("- Posts Directory (example: http://localhost:5000/): ")
+        temp_base_url = input("- Base URL (example: http://localhost:5000/): ")
         temp_webmaster_email = input("- Webmaster/editor email")
         temp_webmaster_name = input("- Webmaster/editor name")
         temp_json = {
