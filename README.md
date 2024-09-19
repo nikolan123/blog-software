@@ -18,6 +18,3 @@ All templates are located in the 'templates' directory and can be fully customiz
 ---
 
 ⭐ If you enjoy using this software, please give it a star!
-
-## TODO
-- Order posts correctly

@@ -218,7 +218,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def homepage():
-    return render_template('homepage.html', title=blog_title, slogan=blog_slogan, posts=posts_dict)
+    posts_dict_s = sorted(posts_dict, key=lambda post: int(post['timestamp_published']), reverse=True)
+    return render_template('homepage.html', title=blog_title, slogan=blog_slogan, posts=posts_dict_s)
 
 @app.route('/posts/<postname>')
 def post_read(postname):
