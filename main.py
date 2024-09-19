@@ -8,6 +8,7 @@ import urllib.parse
 import markdown
 import threading
 import time
+import email.utils
 import waitress
 
 def sha256_hash(input_string):
@@ -17,7 +18,7 @@ def sha256_hash(input_string):
 
 def generate_rss():
     xml_template = f"""
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>{blog_title}</title>
         <link>{base_url}</link>
@@ -26,16 +27,18 @@ def generate_rss():
         <managingEditor>{webmaster_email} ({webmaster_name})</managingEditor>
         <webMaster>{webmaster_email} ({webmaster_name})</webMaster>
         <generator>nikolan's super silly blog software :3</generator>
+        <atom:link href="{base_url}feed" rel="self" type="application/rss+xml"/>
     """
     for post in posts_dict: # add xml for each post
         xml_template += '''
         <item>
           <title>{}</title>
           <link>{}</link>
+          <guid>{}</guid>
           <pubDate>{}</pubDate>
         </item>
-        '''.format(post['title'], post['post_fulllink'],
-                   datetime.fromtimestamp(post['timestamp_published'], tz=timezone.utc).strftime("%a, %d %b %Y at %H:%M:%S GMT"))
+        '''.format(post['title'], post['post_fulllink'], post['post_fulllink'], # both guid and link be same
+                   email.utils.format_datetime(datetime.fromtimestamp(post['timestamp_published'], tz=timezone.utc)))
     xml_template += "</channel></rss>" # finish rss
     return xml_template
 
