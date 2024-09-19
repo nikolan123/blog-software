@@ -53,6 +53,9 @@ def config_gen():
         temp_base_url = input("- Base URL (example: http://localhost:80/) (make sure to add / at the end): ")
         temp_webmaster_email = input("- Webmaster/editor email: ")
         temp_webmaster_name = input("- Webmaster/editor name: ")
+        temp_stylesheet = input("- Stylesheet (defaults to new.css): ")
+        if temp_stylesheet == "":
+            temp_stylesheet = "https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
         temp_json = {
             "title": temp_title,
             "slogan": temp_slogan,
@@ -60,7 +63,8 @@ def config_gen():
             "posts_dir": temp_posts_dir if not temp_posts_dir == "" else "posts",
             "base_url": temp_base_url,
             "webmaster_email": temp_webmaster_email,
-            "webmaster_name": temp_webmaster_name
+            "webmaster_name": temp_webmaster_name,
+            "stylesheet": temp_stylesheet
         }
         temp_choice = input("- Save Config to config.json? (will overwrite) (y/n) ")
         if temp_choice.lower() == "yes" or temp_choice.lower() == "y":
@@ -156,7 +160,7 @@ def init_directories():
             os.makedirs(path)
 
 def read_config():
-    global blog_title, blog_slogan, blog_password, posts_dir, base_url, webmaster_email, webmaster_name
+    global blog_title, blog_slogan, blog_password, posts_dir, base_url, webmaster_email, webmaster_name, stylesheet
     if not os.path.exists("config.json"):
         print("[INIT] Config not found")
         config_gen()
@@ -211,6 +215,15 @@ def read_config():
             webmaster_name = "Anonymous"
         else:
             webmaster_name = config_json.get("webmaster_name")
+        
+        if not config_json.get("stylesheet"):
+            print("[INIT] Stylesheet missing, defaulting to new.css")
+            # this is just the path (url only, so just like host on server or shit)
+            # we's defaultin to new.css
+            stylesheet = "https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css"
+        else:
+            stylesheet = config_json.get("stylesheet")
+
 
 def refresh_periodically(): # function to refresh posts every 3 seconds
     while True:
@@ -222,7 +235,7 @@ app = Flask(__name__)
 @app.route('/')
 def homepage():
     posts_dict_s = sorted(posts_dict, key=lambda post: int(post['timestamp_published']), reverse=True)
-    return render_template('homepage.html', title=blog_title, slogan=blog_slogan, posts=posts_dict_s)
+    return render_template('homepage.html', title=blog_title, slogan=blog_slogan, posts=posts_dict_s, stylesheet=stylesheet)
 
 @app.route('/posts/<postname>')
 def post_read(postname):
