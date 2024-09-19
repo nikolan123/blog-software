@@ -8,6 +8,7 @@ import urllib.parse
 import markdown
 import threading
 import time
+import waitress
 
 def sha256_hash(input_string):
     sha256 = hashlib.sha256()
@@ -235,6 +236,14 @@ def rss_feed_end():
     rss_content = generate_rss()
     return Response(rss_content, mimetype='text/xml') 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html', title=blog_title, slogan=blog_slogan)
+
+@app.errorhandler(500)
+def i_server_error(e):
+    return render_template('500.html', title=blog_title, slogan=blog_slogan)
+
 if __name__ == '__main__':
     init_directories()
     read_config()
@@ -242,5 +251,7 @@ if __name__ == '__main__':
     thread = threading.Thread(target=refresh_periodically) # run function to refresh every 3s in bg
     thread.daemon = True
     thread.start()
-    print("[INIT] Starting")
-    app.run(debug=True)
+    print("[INIT] Starting on host 0.0.0.0, port 80 and using 4 threads")
+    #app.run(debug=True)
+    waitress.serve(app, host='0.0.0.0', port=80, threads=4)
+    
