@@ -215,7 +215,7 @@ def read_config():
 def refresh_periodically(): # function to refresh posts every 3 seconds
     while True:
         refresh_posts()
-        time.sleep(3)
+        time.sleep(30)
 
 app = Flask(__name__)
 
