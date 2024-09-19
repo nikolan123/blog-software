@@ -72,21 +72,23 @@ def refresh_posts():
     global posts_dict
     posts_dict = []
     newfiles_list = []
-    # first, redo the json files
+
+    # first, redo the JSON files
     for post in os.listdir(posts_dir):
         post_path = os.path.join(posts_dir, post)
         if not os.path.isfile(post_path) or not post.lower().endswith('.md'):
             continue
+        
         with open(post_path, 'r', encoding='utf-8') as file:
             # get post title
             first_line = file.readline().strip()
             namep = post[:-3].replace(' ', '-').replace('_', '-')  # normal version of the file name
-            if first_line.startswith('# '): # check if post has a valid title
+            
+            if first_line.startswith('# '):  # check if post has a valid title
                 title = first_line[2:].strip()
+                
                 # check if post existed before, if so get original created date, else set to current
-                # might as well get the value of "auto" while the file is open ( refer to line 60 )
-                auto_value = True
-                old_path = os.path.join('system', post[:-3] + '.json')
+                old_path = os.path.join('system', namep + '.json')
                 if os.path.exists(old_path):
                     with open(old_path, 'r') as old_file:
                         old_json = json.load(old_file)
@@ -95,37 +97,42 @@ def refresh_posts():
                         if not timestamp_published:
                             timestamp_published = datetime.now().timestamp()
                 else:
+                    auto_value = True
                     timestamp_published = datetime.now().timestamp()
-                # generate json and save it :3
-                urlsafe = urllib.parse.quote(post[:-3].replace(' ', '-').replace('_', '-'))  # url safe version of the file name
-                md_path = post_path  # path to the markdown file
-                post_fulllink = base_url + "posts/" + urlsafe  # full url for the markdown file
+
+                # generate json and file
+                urlsafe = urllib.parse.quote(post[:-3].replace(' ', '-').replace('_', '-'))  # url safe filename
+                md_path = post_path  # Path to the markdown file
+                post_fulllink = base_url + "posts/" + urlsafe  # full url
                 post_json = {
                     "title": title,
                     "timestamp_published": int(timestamp_published),
-                    "auto": True, # this means that the json was auto generated and will be touched next time too. if you want
-                                  # to manually override something (such as title), edit the file manually, change the value
-                                  # and set this to false
+                    "auto": auto_value,
                     "urlsafe": urlsafe,
                     "name": namep,
                     "md_path": md_path,
                     "post_fulllink": post_fulllink
                 }
+                
                 newfiles_list.append(namep)
-                if auto_value is True:
-                    # write the new json
+                
+                if auto_value: # do only if auto is true
+                    # write new json
                     with open(os.path.join('system', namep + '.json'), 'w') as post_file:
                         json.dump(post_json, post_file, indent=4)
+
     # second, update the dict
     for json_file in os.listdir('system'):
         json_path = os.path.join('system', json_file)
         if not json_file.lower().endswith('.json'):
             continue
+        
         with open(json_path, 'r', encoding='utf-8') as file:
             posts_dict.append(json.load(file))
 
     newfiles_with_ext = [f"{file}.json" for file in newfiles_list]
 
+    # remove any json files other than the newely genned ones
     for filery in os.listdir('system'):
         if filery not in newfiles_with_ext:
             os.remove(os.path.join('system', filery))
