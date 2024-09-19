@@ -17,5 +17,5 @@ All templates are located in the 'templates' directory and can be fully customiz
 
 ---
 
-⭐ If you enjoy using this software, please give it a star!
+⭐ If you enjoy using this software, please give it a star!<br>
 💗 Special thanks to everyone who helped in any way—you're truly amazing!
