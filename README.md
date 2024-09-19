@@ -21,5 +21,4 @@ All templates are located in the 'templates' directory and can be fully customiz
 
 ## TODO
 - Order posts correctly
-- Homepage footer
 - 404 page
