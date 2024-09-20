@@ -9,6 +9,45 @@
     <meta content="{{ title }}" property="og:title">
     <meta content="{{ posturl }}" property="og:url">
     <meta content="#ADD8E6" data-react-helmet="true" name="theme-color">
+    <style> 
+        main img { /* style for the modal :3 */
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 800px;
+            cursor: default;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+        }
+
+        .close, .close:hover, .close:focus {
+            color: #999;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -20,9 +59,18 @@
         {{ content|safe }}
     </main>
 
+    <!-- fullscreen image modal -->
+    <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const timestamps = document.querySelectorAll('.timestamp');
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("modalImage");
+            const closeModal = document.getElementsByClassName("close")[0];
 
             timestamps.forEach(element => {
                 const timestamp = parseFloat(element.getAttribute('data-timestamp'));
@@ -32,12 +80,36 @@
                     month: 'long', 
                     day: 'numeric', 
                     hour: '2-digit', 
-                    minute: '2-digit', 
-                    // second: '2-digit', 
-                    // timeZoneName: 'short' 
+                    minute: '2-digit'
                 };
                 const humanReadableDate = date.toLocaleString('en-US', options);
                 element.textContent = humanReadableDate;
+            });
+
+            // on image click
+            document.querySelectorAll('main img').forEach(img => {
+                img.addEventListener('click', function() {
+                    modal.style.display = "block";
+                    modalImg.src = this.src;
+                });
+            });
+
+            // close modal when clic outside
+            closeModal.addEventListener('click', function() {
+                modal.style.display = "none";
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+            // close modal on esc
+            window.addEventListener('keydown', function(event) {
+                if (event.key === "Escape" && modal.style.display === "block") {
+                    modal.style.display = "none";
+                }
             });
         });
     </script>
