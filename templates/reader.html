@@ -55,6 +55,7 @@
         <h1>{{ title }}</h1>
         <h3 class="timestamp" data-timestamp="{{ timestamp_published }}"></h3>
     </header>
+    <h3 id="jsDisabledWarning">Please, enable JavaScript for a better experience.</h3>
     <main>
         {{ content|safe }}
     </main>
@@ -92,6 +93,11 @@
                     modal.style.display = "block";
                     modalImg.src = this.src;
                 });
+            });
+
+            // js disabled warning
+            document.querySelectorAll('#jsDisabledWarning').forEach(img => {
+                img.style.display = "none";
             });
 
             // close modal when clic outside
