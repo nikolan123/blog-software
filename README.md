@@ -13,7 +13,7 @@ An RSS feed is automatically available at `/feed`. No additional setup is requir
 Each blog post has an associated file in the 'system' directory that stores metadata such as the title, creation timestamp, and URL. These details can be modified easily. If you make any changes, ensure that the `"auto"` field is set to `false` to prevent the system from overwriting your custom metadata during the next refresh.
 
 ## Custom Themes
-All templates are located in the 'templates' directory and can be fully customized to suit your blog’s aesthetic. The default theme uses [new.css](https://newcss.net).
+You can edit the `stylesheet` option in the configuration file. Defaults to new.css
 
 ---
 
