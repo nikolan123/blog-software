@@ -1,3 +1,5 @@
+# shall not be used
+
 # Niko's Blog Software
 
 ## Setup
